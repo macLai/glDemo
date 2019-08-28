@@ -1,0 +1,93 @@
+<html> 
+<head> 
+<title>webgl</title> 
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"> 
+ 
+<script src="gl.js"></script>
+
+<script id="shader-vs" type="x-shader/x-vertex"> 
+    attribute vec2 a_position;
+    attribute vec2 a_texCoord;
+    varying vec2 v_texCoord;
+    void main() {
+        gl_Position = vec4(a_position, 0.0, 1.0);
+        v_texCoord = a_texCoord;
+    }
+</script> 
+<script id="shader-fs-add_drop" type="x-shader/x-fragment"> 
+    precision mediump float;
+
+    uniform sampler2D u_currHBuf;
+    uniform float u_widthInc;
+    uniform float u_heightInc;
+    uniform float u_dropX;
+    uniform float u_dropY;
+    uniform float u_dropSize;
+
+    varying vec2 v_texCoord;
+
+    void main() {
+        // determine if this texel is the position of a new drop
+        bool isDropXLoc = abs(v_texCoord.x - u_dropX) < u_widthInc;
+        bool isDropYLoc = abs(v_texCoord.y - u_dropY) < u_heightInc;
+        if (isDropXLoc && isDropYLoc) { // create a drop 
+            gl_FragColor.r = gl_FragColor.g = gl_FragColor.b = u_dropSize;
+        } else { // not the location of the drop
+            gl_FragColor = texture2D(u_currHBuf, v_texCoord);
+        }
+    }
+</script> 
+<script id="shader-fs-calculate_pos" type="x-shader/x-fragment"> 
+    precision mediump float;
+
+    uniform sampler2D u_currHBuf;
+    uniform sampler2D u_prevHBuf;
+    uniform float u_widthInc;
+    uniform float u_heightInc;
+    uniform float u_damping;
+
+    varying vec2 v_texCoord;
+
+    void main() {
+        vec2 xinc = vec2(u_widthInc, 0); // increment to neighbouring texel
+        vec2 yinc = vec2(0, u_heightInc);
+        // sum the neighbouring heights
+        float sumH = texture2D(u_currHBuf, v_texCoord - xinc).r;
+        sumH += texture2D(u_currHBuf, v_texCoord + xinc).r;
+        sumH += texture2D(u_currHBuf, v_texCoord - yinc).r;
+        sumH += texture2D(u_currHBuf, v_texCoord + yinc).r;
+        // only divide by 2 in the average
+        // because the previous height is being subtracted out
+        float newH = (sumH / 2.0 - texture2D(u_prevHBuf, v_texCoord).r) * u_damping;
+        gl_FragColor.r = gl_FragColor.g = gl_FragColor.b = newH;
+    
+        // set alpha to 1 in case the height map is rendered for testing
+        gl_FragColor.a = 1.0;
+    }
+</script> 
+<script id="shader-fs-draw_frame" type="x-shader/x-fragment"> 
+    precision mediump float;
+
+    uniform float u_refract;
+    uniform sampler2D u_origImg;
+    uniform sampler2D u_heights;
+
+    varying vec2 v_texCoord;
+    
+    void main() {
+        // set the current pixel to a pixel from the original image
+        // based on an offset caused by the height of the pixel and refraction
+        float r = texture2D(u_heights, v_texCoord).r * u_refract;
+        float xCoord = clamp(v_texCoord.x + r, 0.0, 1.0);
+        float yCoord = clamp(v_texCoord.y + r, 0.0, 1.0);
+        gl_FragColor = texture2D(u_origImg, vec2(xCoord, yCoord));
+    }
+</script> 
+
+</head> 
+ 
+<body onload="webGLStart();"> 
+    <canvas id="can" style="border: none;" width="500" height="500"></canvas> 
+</body> 
+ 
+</html>

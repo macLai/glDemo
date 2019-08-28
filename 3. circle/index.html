@@ -1,0 +1,45 @@
+<html> 
+<head> 
+<title>webgl</title> 
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"> 
+ 
+<script src="gl.js"></script>
+
+<script id="shader-vs" type="x-shader/x-vertex"> 
+    attribute vec3 positionAttr;
+    attribute vec4 colorAttr;
+ 
+    varying vec4 vColor;
+    varying vec2 vPos;
+ 
+    void main(void) {
+        gl_Position = vec4(positionAttr, 1.0);
+        vColor = colorAttr;
+        vPos = gl_Position.xy;
+    }
+</script> 
+<script id="shader-fs" type="x-shader/x-fragment"> 
+    precision mediump float;
+
+    varying vec4 vColor;
+    varying vec2 vPos;
+    void main(void) {
+        gl_FragColor = vColor;
+        
+        float dist = sqrt(dot(vPos,vPos));
+        if (dist >= 0.8 && dist <= 1.0) {
+            float sm = smoothstep(1.0,1.0-0.01,dist);
+            float sm2 = smoothstep(0.8,0.8+0.01,dist);
+            float alpha = sm*sm2;
+            gl_FragColor.a = 1.0-alpha;
+        }
+    }
+</script> 
+
+</head> 
+ 
+<body onload="webGLStart();"> 
+    <canvas id="can" style="border: none;" width="500" height="500"></canvas> 
+</body> 
+ 
+</html>

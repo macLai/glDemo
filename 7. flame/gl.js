@@ -1,4 +1,4 @@
-
+// http://clockworkchilli.com/blog/8_a_fire_shader_in_glsl_for_your_webgl_games
 var gl = null;
 var viewportWidth = 0;
 var viewportHeight = 0;

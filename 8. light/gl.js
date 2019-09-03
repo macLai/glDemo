@@ -69,6 +69,7 @@ function initShaders() {
     program_item.project = gl.getUniformLocation(program_item, "project");
     program_item.view = gl.getUniformLocation(program_item, "view");
     program_item.model = gl.getUniformLocation(program_item, "model");
+    program_item.modelTransformed = gl.getUniformLocation(program_item, "modelTransformed");
     program_item.lightPos = gl.getUniformLocation(program_item, "lightPos");
     program_item.viewPos = gl.getUniformLocation(program_item, "viewPos");
 
@@ -188,6 +189,8 @@ function initGeometry() {
 var model_item = glm.mat4(1.0);
 var project;
 var view;
+var sun_position = glm.vec3(1.0, 1.0, 1.0);
+var view_position = glm.vec3(0.0, 0.0, 5.0);
 
 function drawItem() {
     model_item = glm.rotate(model_item,  0.01, glm.vec3(4.0, 1.0, 0.0));
@@ -201,19 +204,20 @@ function drawItem() {
     // Set up position stream
     gl.vertexAttribPointer(program_item.positionAttr, 3, gl.FLOAT, false, stride, 0);
     // Set up color stream
-    gl.vertexAttribPointer(program_item.texturePositionAttr, 3, gl.FLOAT, false, stride, 3 * Float32Array.BYTES_PER_ELEMENT);
+    gl.vertexAttribPointer(program_item.normalVecAttr, 3, gl.FLOAT, false, stride, 3 * Float32Array.BYTES_PER_ELEMENT);
 
     gl.uniformMatrix4fv(program_item.project, false, project.array);
     gl.uniformMatrix4fv(program_item.view, false, view.array);
     gl.uniformMatrix4fv(program_item.model, false, model_item.array);
-    gl.uniform3f(program_item.lightPos, false, 1.0, 1.0, -4.0);
-    gl.uniform3f(program_item.viewPos, false, 0.0, 0.0, 5.0);
+    gl.uniformMatrix4fv(program_item.modelTransformed, false, glm.transpose(glm.inverse(model_item)).array);
+    gl.uniform3fv(program_item.lightPos, sun_position.array);
+    gl.uniform3fv(program_item.viewPos, view_position.array);
 
     gl.drawArrays(gl.TRIANGLES, 0, 36);
 }
 
 function drawSun() {
-    var model_sun = glm.translate(glm.mat4(1.0), glm.vec3(1.0, 1.0, 1.0));
+    var model_sun = glm.translate(glm.mat4(1.0), sun_position);
 
     gl.useProgram(program_sun);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer_sun);
@@ -236,12 +240,21 @@ function drawScene() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
     project = glm.perspective(glm.radians(45.0), viewportWidth / viewportHeight, 0.1, 100.0);
-    view  = glm.translate(glm.mat4(1.0), glm.vec3(0.0, 0.0, -5.0));
+    view  = glm.lookAt(view_position, glm.vec3(0.0, 0.0, 0.0), glm.vec3(0.0, 1.0, 0.0));
 
     drawItem();
     drawSun();
     
     requestAnimationFrame(drawScene);
+}
+
+var isMove = false;
+
+function doMouseMove(e) {
+    if (!isMove) return;
+    var trans = glm.rotate(glm.mat4(1.0), -0.01 * e.movementX, glm.vec3(0.0, 1.0, 0.0));
+    trans = glm.rotate(trans, -0.01 * e.movementY, glm.vec3(1.0, 0.0, 0.0));
+    view_position = trans['*'](glm.vec4(view_position, 1.0)).xyz;
 }
 
 function webGLStart() {
@@ -254,5 +267,8 @@ function webGLStart() {
     gl.enable(gl.DEPTH_TEST);
 
     drawScene();
-    
+
+    canvas.addEventListener('mousemove', doMouseMove, false);
+    canvas.onmousedown = function(e){ isMove = true; }
+    canvas.onmouseup = function(e){ isMove = false; }
 }

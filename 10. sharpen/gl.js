@@ -76,12 +76,12 @@ function initGeometry() {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     // Interleave vertex positions and colors
     var vertexData = [
-        -1.0,  0.0,  0.0,  0.0,  0.0,
+        -1.0,  1.0,  0.0,  0.0,  0.0,
         -1.0, -1.0,  0.0,  0.0,  1.0,
-        0.0,  -1.0,  0.0,  1.0,  1.0,
+        1.0,  -1.0,  0.0,  1.0,  1.0,
 
-        0.0,   1.0,  0.0,  0.0,  0.0,
-        1.0,   0.0,  0.0,  1.0,  1.0,
+        -1.0,  1.0,  0.0,  0.0,  0.0,
+        1.0,  -1.0,  0.0,  1.0,  1.0,
         1.0,   1.0,  0.0,  1.0,  0.0,
     ];
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);

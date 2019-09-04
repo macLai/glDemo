@@ -1,0 +1,50 @@
+<html> 
+<head> 
+<title>webgl</title> 
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"> 
+
+<script src="glm-js.min.js"></script>
+<script src="gl.js"></script>
+
+<script id="shader-vs-item" type="x-shader/x-vertex"> 
+    attribute vec3 positionAttr;
+
+    uniform mat4 project;
+    uniform mat4 view;
+    uniform mat4 model;
+
+    varying vec4 vPos;
+ 
+    void main(void) {
+        vPos = view * model * vec4(positionAttr, 1.0);
+        vPos = vPos / vPos.w;
+        gl_Position = project * vPos;
+    }
+</script>
+<script id="shader-fs-item" type="x-shader/x-fragment"> 
+    precision mediump float;
+
+    varying vec4 vPos;
+
+    float LinearFog(float distance, float density) {
+        float fogAlpha = exp(distance * density);
+        fogAlpha = 1.0 - clamp(fogAlpha, 0.0, 1.0);
+        return fogAlpha;
+    }
+
+    void main(void) {
+        float fogAlpha = LinearFog(vPos.z + 1.0, 0.5);
+
+        vec4 objectColor = vec4(1.0, 1.0, 1.0, 1.0);
+        vec4 backgroundColor = vec4(0.0, 0.0, 0.0, 1.0);
+        gl_FragColor = mix(objectColor, backgroundColor, fogAlpha);
+    }
+</script> 
+
+</head> 
+ 
+<body onload="webGLStart();"> 
+    <canvas id="can" style="border: none;" width="500" height="500"></canvas> 
+</body> 
+ 
+</html>

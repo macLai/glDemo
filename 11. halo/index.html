@@ -1,0 +1,59 @@
+<html> 
+<head> 
+<title>webgl</title> 
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"> 
+
+<script src="glm-js.min.js"></script>
+<script src="gl.js"></script>
+
+<script id="shader-vs-sun" type="x-shader/x-vertex"> 
+    attribute vec3 positionAttr;
+
+    uniform mat4 project;
+    uniform mat4 view;
+    uniform mat4 model;
+ 
+    void main(void) {
+        //vec4 pos = view * model * vec4(positionAttr, 1.0);
+        //pos.z = -5.0;
+        gl_Position = model * vec4(positionAttr, 1.0);//project * pos;
+        
+    }
+</script> 
+<script id="shader-vs-item" type="x-shader/x-vertex"> 
+    attribute vec3 positionAttr;
+    attribute vec4 colorVecAttr;
+
+    uniform mat4 model;
+
+    varying vec4 vColor;
+ 
+    void main(void) {
+        gl_Position = model * vec4(positionAttr, 1.0);
+        vColor = colorVecAttr;
+    }
+</script> 
+<script id="shader-fs-sun" type="x-shader/x-fragment"> 
+    precision mediump float;
+
+    void main(void) {
+        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    }
+</script> 
+<script id="shader-fs-item" type="x-shader/x-fragment"> 
+    precision mediump float;
+
+    varying vec4 vColor;
+
+    void main(void) {
+        gl_FragColor = vColor;
+    }
+</script> 
+
+</head> 
+ 
+<body onload="webGLStart();"> 
+    <canvas id="can" style="border: none;" width="500" height="500"></canvas> 
+</body> 
+ 
+</html>
